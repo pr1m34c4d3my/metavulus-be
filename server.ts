@@ -1,27 +1,37 @@
+import express, {
+  Express,
+  NextFunction,
+  Request,
+  Response,
+  response,
+} from "express";
+import { createClient } from "redis";
+
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const uri = `mongodb+srv://wisnubl1995:qweasd123@wisnu0.xvb6xvv.mongodb.net/?retryWrites=true&w=majority`;
+const server: Express = express();
+const port = 5000;
+const redisPort = 6379;
+const client: any = createClient();
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
-
-async function run() {
+const getProduct = async (req: Request, res: Response) => {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("metavulus").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
+    const id = req.params.id;
+    const url = `https://dummyjson.com/products/${id}`;
+    const response = await fetch(url).then((res) => res.json());
+    const title = response.title;
+
+    client.set(title);
+
+    res.send(title);
+  } catch (error) {
+    console.error(error);
+    res.status(500);
   }
-}
-run().catch(console.dir);
+};
+
+server.get("/:id", getProduct);
+
+server.listen(5000, () => {
+  console.log(`This application running on http://localhost:${port}`);
+});
