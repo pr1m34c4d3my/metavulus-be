@@ -1,26 +1,11 @@
-DB_USER = "wisnubl1995"
-DB_PASS = "qweasd123"
+PORT=8080
+CORS_METHOD="GET, POST, PUT, DELETE, PATCH"
+CORS_HEADER="Content-Type"
+CORS_ORIGIN="*"
 
-DB_URL = "mongodb+srv://wisnubl1995:qweasd123@wisnu0.xvb6xvv.mongodb.net/?retryWrites=true&w=majority"
+DB_DIALECT="mongodb"
+DB_HOST="127.0.0.1"
+DB_PORT="27017"
+DB_NAME="metavulus"
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
-
-async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("metavulus").command({ ping: 1 });
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-  }
-}
-run().catch(console.dir);
+MAILER="#"
