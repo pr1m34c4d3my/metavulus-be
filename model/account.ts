@@ -6,6 +6,7 @@ const account = new Schema({
   username: {
     type: String,
     required: true,
+    unique: true,
   },
   password: {
     type: String,
@@ -14,6 +15,7 @@ const account = new Schema({
   email: {
     type: String,
     required: true,
+    unique: true,
   },
 
   lastLogin: {
@@ -25,6 +27,7 @@ const account = new Schema({
     },
     mobileNumber: {
       type: Number,
+      unique: true,
     },
     sex: {
       type: String,
