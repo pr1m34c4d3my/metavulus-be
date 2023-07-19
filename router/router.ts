@@ -4,12 +4,14 @@ const taggingHandler = require("./handler/taggingHandler");
 const accountHandler = require("./handler/accountHandler");
 const postHandler = require("./handler/postHandler");
 const commentHandler = require("./handler/commentHandler");
+const followAccountHandler = require("./handler/followHandler");
 
 server.use(express.json());
 server.use("/tagging", taggingHandler);
 server.use("/account", accountHandler);
 server.use("/post", postHandler);
 server.use("/comment", commentHandler);
+server.use("/follow", followAccountHandler);
 server.get("/", (req: Request, res: Response, next: NextFunction) => {
   res.send("You are connected with our server");
 });

@@ -1,67 +1,111 @@
 import { Request, Response } from "express";
 import ACCOUNT from "../model/account";
-import { timeZone } from "../utils/timezone";
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const { timeZone, utils, responseHandler } = require("../utils");
 
 const accountController = {
   checkUserExist: async (email: string) => {
     try {
       const account = await ACCOUNT.find({ email: email });
-      if (account) {
-        return true;
+      if (account.length === 0) {
+        return false;
       }
-      return false;
+      return true;
     } catch (error) {
       console.log(error);
     }
   },
+  
   createAccount: async (req: Request, res: Response) => {
     const { username, password, email, lastLogin, accountDetail } = req.body;
     const { fullName, mobileNumber, sex, birth, description, profilePicture } =
       accountDetail;
     try {
+      if (!utils.isValidEmail(email)) {
+        return res.status(400).json(
+          responseHandler.failed("Validation Failed", res.statusCode, {
+            email: "Email Is Not Valid",
+          })
+        );
+      }
+
+      if (!utils.validateStrongPassword(password)) {
+        return res.status(400).json(
+          responseHandler.failed("Validation Failed", res.statusCode, {
+            password: "Password required min 8 character",
+          })
+        );
+      }
+
+      if (!utils.mobileNumberIndonesia(mobileNumber)) {
+        return res.status(400).json(
+          responseHandler.failed("Validation failed", res.statusCode, {
+            mobileNumber: "Mobile Number is not valid in indonesia",
+          })
+        );
+      }
+
       const isExist = await accountController.checkUserExist(email);
       if (isExist) {
-        return res.status(400).json({ message: "Email Already Used" });
+        return res.status(400).json(
+          responseHandler.failed("Validation Failed", res.statusCode, {
+            email: "Email Already Used",
+          })
+        );
       }
-      bcrypt.hash(password, 10, async (err: any, hash: any) => {
-        if (err) {
-          return res.status(500).json({ message: "Internal Server Error" });
-        }
 
-        const newAccount = new ACCOUNT({
-          username: username,
-          password: hash,
-          email: email,
-          lastLogin: lastLogin,
-          accountDetail: {
-            fullName: fullName,
-            mobileNumber: mobileNumber,
-            sex: sex,
-            birth: birth,
-            description: description,
-            profilePicture: profilePicture,
-          },
-        });
-        await newAccount.save();
-        res.status(201).json({
-          message: newAccount,
-        });
+      const newAccount = new ACCOUNT({
+        username: username,
+        password: await utils.hashPassword(password),
+        email: email,
+        lastLogin: lastLogin,
+        accountDetail: {
+          fullName: fullName,
+          mobileNumber: mobileNumber,
+          sex: sex,
+          birth: birth,
+          description: description,
+          profilePicture: profilePicture,
+        },
       });
-    } catch (error) {
-      res.status(500).json({ message: "Internal Server Error" });
+      await newAccount.save();
+      res
+        .status(201)
+        .json(
+          responseHandler.success(
+            "Succesfully Create Account",
+            res.statusCode,
+            newAccount
+          )
+        );
+    } catch (error: any) {
+      res
+        .status(500)
+        .json(responseHandler.failed(error.message, res.statusCode, error))
+        .end();
     }
   },
 
   getAllAccount: async (req: Request, res: Response) => {
     try {
-      const account = await ACCOUNT.find({
-        $where: `isDeleted ===${0}`,
+      const account = await ACCOUNT.find().select({
+        password: 0,
+        createdAt: 0,
+        __v: 0,
+        "accountDetail.description": 0,
+        "accountDetail.accountInactive": 0,
+        "accountDetail.accountLock": 0,
+        "accountDetail.verificationStatus": 0,
       });
-      res.status(200).json({ message: account });
-    } catch (error) {
-      res.status(500).json({ message: "Internal Server Error" });
+      res
+        .status(200)
+        .json(
+          responseHandler.success("Succesfully fetch", res.statusCode, account)
+        );
+    } catch (error: any) {
+      res
+        .status(500)
+        .json(responseHandler.failed(error.message, res.statusCode, error))
+        .end();
     }
   },
 
@@ -74,9 +118,16 @@ const accountController = {
           { "accountDetail.fullName": { $regex: username, $options: "i" } },
         ],
       });
-      res.status(200).json({ message: account });
-    } catch (error) {
-      res.status(500).json({ message: "Internal Server Error" });
+      res
+        .status(200)
+        .json(
+          responseHandler.success("Succesfully fetch", res.statusCode, account)
+        );
+    } catch (error: any) {
+      res
+        .status(500)
+        .json(responseHandler.failed(error.message, res.statusCode, error))
+        .end();
     }
   },
 
@@ -86,9 +137,16 @@ const accountController = {
       const account = await ACCOUNT.find({
         _id: Id,
       });
-      res.status(200).json({ message: account });
-    } catch (error) {
-      res.status(500).json({ message: "Internal Server Error" });
+      res
+        .status(200)
+        .json(
+          responseHandler.success("Succesfully fetch", res.statusCode, account)
+        );
+    } catch (error: any) {
+      res
+        .status(500)
+        .json(responseHandler.failed(error.message, res.statusCode, error))
+        .end();
     }
   },
 
@@ -115,11 +173,16 @@ const accountController = {
         updatedAt: timeZone(),
       };
       await ACCOUNT.findByIdAndUpdate(id, updateAccount);
-      res.status(200).json({
-        message: updateAccount,
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Internal Server Error" });
+      res
+        .status(200)
+        .json(
+          responseHandler.success("Succesfully update", res.statusCode, updateAccount)
+        );
+    } catch (error: any) {
+      res
+        .status(500)
+        .json(responseHandler.failed(error.message, res.statusCode, error))
+        .end();
     }
   },
 
@@ -128,11 +191,16 @@ const accountController = {
 
     try {
       await ACCOUNT.findByIdAndDelete(id);
-      res.status(200).json({
-        message: "Successfully Account Delete",
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Internal Server Error" });
+      res
+      .status(200)
+      .json(
+        responseHandler.success("Succesfully Delete Account", res.statusCode)
+      );
+    } catch (error: any) {
+      res
+        .status(500)
+        .json(responseHandler.failed(error.message, res.statusCode, error))
+        .end();
     }
   },
 
@@ -145,34 +213,29 @@ const accountController = {
           .status(404)
           .json({ message: "Authentication failed. User not found." });
       }
-      bcrypt.compare(password, account.password, (err: any, result: any) => {
-        if (err || !result) {
-          return res.status(401).json({
-            message: "Authentication failed. Invalid email or password.",
-          });
-        }
 
-        const token = jwt.sign(
-          { id: account._id, email: account.email },
-          process.env.SECRETKEYS,
-          {
-            expiresIn: "1h",
-          }
+      if (!utils.comparePassword(password, account.password)) {
+        return res.status(401).json(
+          responseHandler.failed("Authentication Failed", res.statusCode, {
+            password: "Password is not valid",
+          })
         );
-        const decodedToken = jwt.decode(token); // Decoding the token to access the payload
-        const expiresIn = Math.floor(
-          (decodedToken.exp - Date.now() / 1000) / 3600
-        );
+      }
 
-        res.json({
+      const token = utils.generateToken(account._id, account.email);
+
+      res.status(200).json(
+        responseHandler.success("Succesfully login", res.statusCode, {
           id: account._id,
           email: account.email,
           token,
-          expiresIn: expiresIn,
-        });
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Internal Server Error" });
+        })
+      );
+    } catch (error: any) {
+      res
+        .status(500)
+        .json(responseHandler.failed(error.message, res.statusCode, error))
+        .end();
     }
   },
 };
