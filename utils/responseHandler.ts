@@ -9,7 +9,7 @@ const codes = [
   },
   {
     code: 400,
-    message: "BAD_REQUEST",
+    message: "BAD REQUEST",
   },
   {
     code: 401,
@@ -17,7 +17,7 @@ const codes = [
   },
   {
     code: 404,
-    message: "NOT_FOUND",
+    message: "NOT FOUND",
   },
   {
     code: 403,
@@ -25,50 +25,59 @@ const codes = [
   },
   {
     code: 405,
-    message: "METHOD_NOT_ALLOWED",
+    message: "METHOD NOT ALLOWED",
   },
   {
     code: 408,
-    message: "REQUEST_TIMEOUT",
+    message: "REQUEST TIMEOUT",
   },
   {
     code: 500,
-    message: "INTERNAL_SERVER_ERROR",
+    message: "INTERNAL SERVER ERROR",
   },
   {
     code: 501,
-    message: "NOT_IMPLEMENTED",
+    message: "NOT IMPLEMENTED",
   },
   {
     code: 502,
-    message: "BAD_GATEWAY",
+    message: "BAD GATEWAY",
   },
   {
     code: 503,
-    message: "SERVICE_UNAVAILABLE",
+    message: "SERVICE UNAVAILABLE",
   },
 ];
 
 const responseHandler = {
-  success: (responseMessage: string, statusCode: number, data?: any) => {
+  success: (statusCode: number, data?: any) => {
+    const findCode = codes.find((http) => http.code == statusCode);
+    const responseMessage = findCode
+      ? findCode.message
+      : "INTERNAL_SERVER_ERROR";
     return {
       responseMessage,
-      status: true,
       responseCode: statusCode,
       data,
     };
   },
-  failed: (responseMessage: string, statusCode: number, errors: any) => {
+  failed: (statusCode: number, errorMessage: any) => {
     const findCode = codes.find((http) => http.code == statusCode);
 
     if (!findCode) statusCode = 500;
     else statusCode = findCode.code;
+    if (errorMessage.code === 11000) {
+      errorMessage = `${Object.keys(errorMessage.keyValue)[0]} Already Used`;
+    }
+
+    const responseMessage = findCode
+      ? findCode.message
+      : "INTERNAL_SERVER_ERROR";
 
     return {
       responseMessage,
-      status: false,
       responseCode: statusCode,
-      errors,
+      errorMessage,
     };
   },
 };

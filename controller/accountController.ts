@@ -3,56 +3,38 @@ import ACCOUNT from "../model/account";
 const { timeZone, utils, responseHandler } = require("../utils");
 
 const accountController = {
-  checkUserExist: async (email: string) => {
-    try {
-      const account = await ACCOUNT.find({ email: email });
-      if (account.length === 0) {
-        return false;
-      }
-      return true;
-    } catch (error) {
-      console.log(error);
-    }
-  },
-  
   createAccount: async (req: Request, res: Response) => {
     const { username, password, email, lastLogin, accountDetail } = req.body;
     const { fullName, mobileNumber, sex, birth, description, profilePicture } =
       accountDetail;
     try {
       if (!utils.isValidEmail(email)) {
-        return res.status(400).json(
-          responseHandler.failed("Validation Failed", res.statusCode, {
-            email: "Email Is Not Valid",
-          })
-        );
+        return res
+          .status(400)
+          .json(responseHandler.failed(res.statusCode, "Email Is Not Valid"));
       }
 
       if (!utils.validateStrongPassword(password)) {
-        return res.status(400).json(
-          responseHandler.failed("Validation Failed", res.statusCode, {
-            password: "Password required min 8 character",
-          })
-        );
+        return res
+          .status(400)
+          .json(
+            responseHandler.failed(
+              res.statusCode,
+              "Password required min 8 character"
+            )
+          );
       }
 
       if (!utils.mobileNumberIndonesia(mobileNumber)) {
-        return res.status(400).json(
-          responseHandler.failed("Validation failed", res.statusCode, {
-            mobileNumber: "Mobile Number is not valid in indonesia",
-          })
-        );
+        return res
+          .status(400)
+          .json(
+            responseHandler.failed(
+              res.statusCode,
+              "Mobile Number is not valid in indonesia"
+            )
+          );
       }
-
-      const isExist = await accountController.checkUserExist(email);
-      if (isExist) {
-        return res.status(400).json(
-          responseHandler.failed("Validation Failed", res.statusCode, {
-            email: "Email Already Used",
-          })
-        );
-      }
-
       const newAccount = new ACCOUNT({
         username: username,
         password: await utils.hashPassword(password),
@@ -68,20 +50,9 @@ const accountController = {
         },
       });
       await newAccount.save();
-      res
-        .status(201)
-        .json(
-          responseHandler.success(
-            "Succesfully Create Account",
-            res.statusCode,
-            newAccount
-          )
-        );
+      res.status(201).json(responseHandler.success(res.statusCode, newAccount));
     } catch (error: any) {
-      res
-        .status(500)
-        .json(responseHandler.failed(error.message, res.statusCode, error))
-        .end();
+      res.status(500).json(responseHandler.failed(res.statusCode, error)).end();
     }
   },
 
@@ -96,16 +67,9 @@ const accountController = {
         "accountDetail.accountLock": 0,
         "accountDetail.verificationStatus": 0,
       });
-      res
-        .status(200)
-        .json(
-          responseHandler.success("Succesfully fetch", res.statusCode, account)
-        );
+      res.status(200).json(responseHandler.success(res.statusCode, account));
     } catch (error: any) {
-      res
-        .status(500)
-        .json(responseHandler.failed(error.message, res.statusCode, error))
-        .end();
+      res.status(500).json(responseHandler.failed(res.statusCode, error)).end();
     }
   },
 
@@ -118,16 +82,9 @@ const accountController = {
           { "accountDetail.fullName": { $regex: username, $options: "i" } },
         ],
       });
-      res
-        .status(200)
-        .json(
-          responseHandler.success("Succesfully fetch", res.statusCode, account)
-        );
+      res.status(200).json(responseHandler.success(res.statusCode, account));
     } catch (error: any) {
-      res
-        .status(500)
-        .json(responseHandler.failed(error.message, res.statusCode, error))
-        .end();
+      res.status(500).json(responseHandler.failed(res.statusCode, error)).end();
     }
   },
 
@@ -137,16 +94,9 @@ const accountController = {
       const account = await ACCOUNT.find({
         _id: Id,
       });
-      res
-        .status(200)
-        .json(
-          responseHandler.success("Succesfully fetch", res.statusCode, account)
-        );
+      res.status(200).json(responseHandler.success(res.statusCode, account));
     } catch (error: any) {
-      res
-        .status(500)
-        .json(responseHandler.failed(error.message, res.statusCode, error))
-        .end();
+      res.status(500).json(responseHandler.failed(res.statusCode, error)).end();
     }
   },
 
@@ -175,14 +125,9 @@ const accountController = {
       await ACCOUNT.findByIdAndUpdate(id, updateAccount);
       res
         .status(200)
-        .json(
-          responseHandler.success("Succesfully update", res.statusCode, updateAccount)
-        );
+        .json(responseHandler.success(res.statusCode, updateAccount));
     } catch (error: any) {
-      res
-        .status(500)
-        .json(responseHandler.failed(error.message, res.statusCode, error))
-        .end();
+      res.status(500).json(responseHandler.failed(res.statusCode, error)).end();
     }
   },
 
@@ -191,16 +136,9 @@ const accountController = {
 
     try {
       await ACCOUNT.findByIdAndDelete(id);
-      res
-      .status(200)
-      .json(
-        responseHandler.success("Succesfully Delete Account", res.statusCode)
-      );
+      res.status(200).json(responseHandler.success(res.statusCode));
     } catch (error: any) {
-      res
-        .status(500)
-        .json(responseHandler.failed(error.message, res.statusCode, error))
-        .end();
+      res.status(500).json(responseHandler.failed(res.statusCode, error)).end();
     }
   },
 
@@ -211,31 +149,28 @@ const accountController = {
       if (!account) {
         return res
           .status(404)
-          .json({ message: "Authentication failed. User not found." });
+          .json(responseHandler.failed(res.statusCode, "Email not found"));
       }
 
       if (!utils.comparePassword(password, account.password)) {
-        return res.status(401).json(
-          responseHandler.failed("Authentication Failed", res.statusCode, {
-            password: "Password is not valid",
-          })
-        );
+        return res
+          .status(401)
+          .json(
+            responseHandler.failed(res.statusCode, "Password is not valid")
+          );
       }
 
       const token = utils.generateToken(account._id, account.email);
 
       res.status(200).json(
-        responseHandler.success("Succesfully login", res.statusCode, {
+        responseHandler.success(res.statusCode, {
           id: account._id,
           email: account.email,
           token,
         })
       );
     } catch (error: any) {
-      res
-        .status(500)
-        .json(responseHandler.failed(error.message, res.statusCode, error))
-        .end();
+      res.status(500).json(responseHandler.failed(res.statusCode, error)).end();
     }
   },
 };
