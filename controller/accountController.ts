@@ -33,7 +33,7 @@ const accountController = {
           .json(
             responseHandler.failed(
               res.statusCode,
-              "Mobile Number is not valid in indonesia"
+              "Mobile Number is not valid"
             )
           );
       }
@@ -71,7 +71,7 @@ const accountController = {
         "accountDetail.accountLock": 0,
         "accountDetail.verificationStatus": 0,
       });
-      await redisCache.setAll(req.originalUrl, account);
+      await redisCache.setAll(req.originalUrl, account)
       res.status(200).json(responseHandler.success(res.statusCode, account));
     } catch (error: any) {
       res.status(500).json(responseHandler.failed(res.statusCode, error)).end();
