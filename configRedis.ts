@@ -10,7 +10,6 @@ const redisOptions: any = {
 
 const redisClient = redis.createClient(redisOptions);
 redisClient.connect();
-const getAsync = util.promisify(redisClient.get).bind(redisClient);
 
 const connectToRedis = async (
   req: Request,
