@@ -1,10 +1,12 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import ACCOUNT from "../model/account";
+import { redisCache } from "../configRedis";
 const { timeZone, utils, responseHandler } = require("../utils");
 
 const accountController = {
-  createAccount: async (req: Request, res: Response) => {
-    const { username, password, email, lastLogin, accountDetail } = req.body;
+  createAccount: async (req: Request, res: Response, next: NextFunction) => {
+    const { username, password, email, lastLogin, role, accountDetail } =
+      req.body;
     const { fullName, mobileNumber, sex, birth, description, profilePicture } =
       accountDetail;
     try {
@@ -40,6 +42,7 @@ const accountController = {
         password: await utils.hashPassword(password),
         email: email,
         lastLogin: lastLogin,
+        role: role,
         accountDetail: {
           fullName: fullName,
           mobileNumber: mobileNumber,
@@ -49,6 +52,7 @@ const accountController = {
           profilePicture: profilePicture,
         },
       });
+      await redisCache.delete(req.originalUrl);
       await newAccount.save();
       res.status(201).json(responseHandler.success(res.statusCode, newAccount));
     } catch (error: any) {
@@ -67,6 +71,7 @@ const accountController = {
         "accountDetail.accountLock": 0,
         "accountDetail.verificationStatus": 0,
       });
+      await redisCache.setAll(req.originalUrl, account);
       res.status(200).json(responseHandler.success(res.statusCode, account));
     } catch (error: any) {
       res.status(500).json(responseHandler.failed(res.statusCode, error)).end();

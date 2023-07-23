@@ -8,9 +8,10 @@ const {
   accountDelete,
   login,
 } = require("../../controller/accountController");
+import { redisMiddleware } from "../../middleware/redisMiddleware";
 
 const router: Router = express.Router();
-router.get("/", getAllAccount);
+router.get("/", redisMiddleware.get, getAllAccount);
 router.post("/", createAccount);
 router.get("/getAccountByUsernameOrName/:username", getAccountByUsernameOrName);
 router.get("/getAccountById/:Id", getAccountById);

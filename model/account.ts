@@ -21,6 +21,10 @@ const account = new Schema({
   lastLogin: {
     type: Date,
   },
+  role: {
+    type: String,
+    required: true,
+  },
   accountDetail: {
     fullName: {
       type: String,
