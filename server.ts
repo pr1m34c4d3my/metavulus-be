@@ -28,7 +28,7 @@ server.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-server.use("/", connectToDatabase, connectToRedis, router);
+server.use("/", connectToDatabase, router);
 
 server.listen(port, () => {
   console.log(`Server is connected on http://localhost:${port}`);

@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import * as redis from "redis";
-const util = require("util");
 require("dotenv").config();
 
 const redisOptions: any = {
