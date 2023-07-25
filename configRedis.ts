@@ -21,6 +21,7 @@ const connectToRedis = async (
   });
   redisClient.on("error", (error) => {
     console.error("Error connecting to Redis:", error);
+    redisClient.shutdown();
   });
   next();
 };

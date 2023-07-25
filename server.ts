@@ -21,6 +21,7 @@ server.use((req: Request, res: Response, next: NextFunction) => {
     "Access-Control-Allow-Methods",
     process.env.CORS_METHOD || "GET, POST, PUT, DELETE"
   );
+   
   res.setHeader(
     "Access-Control-Allow-Headers",
     process.env.CORS_HEADER || "Content-Type"

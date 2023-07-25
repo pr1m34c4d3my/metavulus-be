@@ -25,6 +25,9 @@ const account = new Schema({
     type: String,
     required: true,
   },
+  hubspotId: {
+    type: String,
+  },
   accountDetail: {
     fullName: {
       type: String,
