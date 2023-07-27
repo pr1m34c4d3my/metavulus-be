@@ -9,7 +9,7 @@ const connectToDatabase = async (
 ) => {
   try {
     await mongoose.connect(
-      `${process.env.DB_DIALECT}://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`
+      `mongodb+srv://wisnubl1995:qweasd123@wisnu0.xvb6xvv.mongodb.net/metavulus`
     );
     next();
   } catch (error) {
