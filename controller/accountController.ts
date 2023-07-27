@@ -6,7 +6,8 @@ import axios from "axios";
 const { timeZone, utils, responseHandler } = require("../utils");
 const tokenHubspot =
   process.env.HUBSPOT_TOKEN || "pat-na1-32fe11d3-b725-4648-a00d-6a9a2e4eb5d0";
-const url = process.env.HUBSPOT_API || "";
+const url =
+  process.env.HUBSPOT_API || "https://api.hubapi.com/crm/v3/objects/contacts";
 const accountController = {
   createAccount: async (req: Request, res: Response, next: NextFunction) => {
     const { username, password, email, lastLogin, role, accountDetail } =
@@ -129,6 +130,30 @@ const accountController = {
           { username: { $regex: username, $options: "i" } },
           { "accountDetail.fullName": { $regex: username, $options: "i" } },
         ],
+      });
+      res.status(200).json(responseHandler.success(res.statusCode, account));
+    } catch (error: any) {
+      res.status(500).json(responseHandler.failed(res.statusCode, error)).end();
+    }
+  },
+
+  validateUsername: async (req: Request, res: Response) => {
+    const { username } = req.params;
+    try {
+      const account = await ACCOUNT.find({
+        username: username,
+      });
+      res.status(200).json(responseHandler.success(res.statusCode, account));
+    } catch (error: any) {
+      res.status(500).json(responseHandler.failed(res.statusCode, error)).end();
+    }
+  },
+
+  validateEmail: async (req: Request, res: Response) => {
+    const { email } = req.params;
+    try {
+      const account = await ACCOUNT.find({
+        email: email,
       });
       res.status(200).json(responseHandler.success(res.statusCode, account));
     } catch (error: any) {

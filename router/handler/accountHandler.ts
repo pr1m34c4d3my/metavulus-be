@@ -7,6 +7,8 @@ const {
   updateAccount,
   accountDelete,
   login,
+  validateUsername,
+  validateEmail,
 } = require("../../controller/accountController");
 import { redisMiddleware } from "../../middleware/redisMiddleware";
 
@@ -14,6 +16,8 @@ const router: Router = express.Router();
 router.get("/", getAllAccount);
 router.post("/", createAccount);
 router.get("/getAccountByUsernameOrName/:username", getAccountByUsernameOrName);
+router.get("/validateUser/:username", validateUsername);
+router.get("/validateEmail/:email", validateEmail);
 router.get("/getAccountById/:Id", getAccountById);
 router.patch("/", updateAccount);
 router.delete("/", accountDelete);
